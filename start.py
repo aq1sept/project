@@ -1,49 +1,53 @@
 import platform
 import psutil
 import subprocess
-import os
+
+def safe_get(func, default="N/A"):
+    """Безпечний виклик функції з обробкою помилок"""
+    try:
+        return func()
+    except Exception as e:
+        return f"{default} (Error: {e})"
 
 def get_system_info():
     info = {}
 
     # ОС
-    info["OS"] = f"{platform.system()} {platform.release()} ({platform.version()})"
+    info["OS"] = safe_get(lambda: f"{platform.system()} {platform.release()} ({platform.version()})")
 
     # Архітектура
-    info["Architecture"] = platform.architecture()[0]
+    info["Architecture"] = safe_get(lambda: platform.architecture()[0])
 
     # Ім’я комп’ютера
-    info["Machine name"] = platform.node()
+    info["Machine name"] = safe_get(lambda: platform.node())
 
     # Процесор
-    info["Processor"] = platform.processor()
+    info["Processor"] = safe_get(lambda: platform.processor() or "Unknown CPU")
 
     # Кількість ядер і потоків
-    info["CPU Cores"] = psutil.cpu_count(logical=False)
-    info["CPU Threads"] = psutil.cpu_count(logical=True)
+    info["CPU Cores"] = safe_get(lambda: psutil.cpu_count(logical=False))
+    info["CPU Threads"] = safe_get(lambda: psutil.cpu_count(logical=True))
 
-    # Озу
-    ram = psutil.virtual_memory()
-    info["RAM"] = f"{round(ram.total / (1024**3), 2)} GB"
+    # Оперативна пам’ять
+    info["RAM"] = safe_get(lambda: f"{round(psutil.virtual_memory().total / (1024**3), 2)} GB")
 
-    # Диск
-    disk = psutil.disk_usage('/')
-    info["Disk"] = f"{round(disk.total / (1024**3), 2)} GB"
+    # Диск (C:)
+    info["Disk (C:)"] = safe_get(lambda: f"{round(psutil.disk_usage('C:\\').total / (1024**3), 2)} GB")
 
     # Відеокарта (через WMIC)
-    try:
+    def get_gpu():
         gpu_info = subprocess.check_output(
             "wmic path win32_VideoController get name", shell=True
         ).decode(errors="ignore").strip().split("\n")[1:]
-        info["GPU"] = ", ".join([gpu.strip() for gpu in gpu_info if gpu.strip()])
-    except Exception as e:
-        info["GPU"] = f"Error: {e}"
+        gpus = [gpu.strip() for gpu in gpu_info if gpu.strip()]
+        return ", ".join(gpus) if gpus else "Unknown GPU"
+
+    info["GPU"] = safe_get(get_gpu)
 
     return info
 
 
 if __name__ == "__main__":
-    system_info = get_system_info()
     print("=== System Information ===")
-    for key, value in system_info.items():
+    for key, value in get_system_info().items():
         print(f"{key}: {value}")

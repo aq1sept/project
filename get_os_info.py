@@ -34,7 +34,7 @@ def get_system_info():
     # Диск (C:)
     info["Disk (C:)"] = safe_get(lambda: f"{round(psutil.disk_usage('C:\\').total / (1024**3), 2)} GB")
 
-    # Відеокарта (через WMIC)
+    # GPU
     def get_gpu():
         gpu_info = subprocess.check_output(
             "wmic path win32_VideoController get name", shell=True

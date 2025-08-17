@@ -13,7 +13,7 @@ def get_system_info():
     info = {}
 
     # ОС
-    info["OS"] = safe_get(lambda: f"{platform.system()} {platform.release()} ({platform.version()})")
+    #info["OS"] = safe_get(lambda: f"{platform.system()} {platform.release()} ({platform.version()})")
 
     # Архітектура
     info["Architecture"] = safe_get(lambda: platform.architecture()[0])

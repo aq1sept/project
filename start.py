@@ -22,7 +22,7 @@ def get_system_info():
     info["CPU Cores"] = psutil.cpu_count(logical=False)
     info["CPU Threads"] = psutil.cpu_count(logical=True)
 
-    # Оперативна пам’ять
+    # Озу
     ram = psutil.virtual_memory()
     info["RAM"] = f"{round(ram.total / (1024**3), 2)} GB"
 
